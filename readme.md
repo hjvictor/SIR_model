@@ -11,4 +11,4 @@ https://git-scm.com/install/windows
 
 -IDE vs code : https://code.visualstudio.com/
 
--test avec Camille
+-test avec Hugo
