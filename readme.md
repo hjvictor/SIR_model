@@ -8,3 +8,5 @@ Ce projet contient :
 
 - to install git to manage code versionning:
 https://git-scm.com/install/windows
+
+-IDE vs code : https://code.visualstudio.com/
