@@ -12,9 +12,12 @@ https://git-scm.com/install/windows
 -IDE vs code : https://code.visualstudio.com/
 
 -test avec Hugo
-
+compartiment:
 https://ici.saclay.inria.fr/simu/detail.php
 
+etude1 zombie:
 https://loe.org/images/content/091023/Zombie%20Publication.pdf
 
+etude zombie 2:
 https://phys.org/news/2017-01-physics-students-explore-feasibility-surviving.html
+
