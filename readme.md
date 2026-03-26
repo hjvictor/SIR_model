@@ -21,3 +21,4 @@ https://loe.org/images/content/091023/Zombie%20Publication.pdf
 etude zombie 2:
 https://phys.org/news/2017-01-physics-students-explore-feasibility-surviving.html
 
+https://accromath.uqam.ca/2023/10/les-modeles-compartimentaux/
