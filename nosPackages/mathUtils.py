@@ -104,14 +104,14 @@ class SIRD:
         #  que : 1/6 + 1/3 + 1/3 + 1/6 = 1 */
         return y + dx*( d1 + 2*d2 + 2*d3 + d4 )/6  
 
-    def deriv_SIRD(self,t,y,params):
+    def deriv_SIRD(self, t, y, params):
         """
         Derivees pour SIR
         """
         beta = params["beta"]
         gamma= params["gamma"]
         mu= params["mu"]
-        dy = np.zeros(3)
+        dy = np.zeros(4)
         dy[0] = -beta*y[0]*y[1] # dérivée de S
         dy[1] = beta*y[0]*y[1]-gamma*y[1] # dérivée de I
         dy[2] = gamma*y[1] # dérivée de R
