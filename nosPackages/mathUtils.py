@@ -113,7 +113,7 @@ class SIRD:
         mu= params["mu"]
         dy = np.zeros(4)
         dy[0] = -beta*y[0]*y[1] # dérivée de S
-        dy[1] = beta*y[0]*y[1]-gamma*y[1] # dérivée de I
+        dy[1] = beta*y[0]*y[1]-gamma*y[1] - mu*y[1] # dérivée de I
         dy[2] = gamma*y[1] # dérivée de R
         dy[3] = mu*y[1] # Dérivée de D
 
