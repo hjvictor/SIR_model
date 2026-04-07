@@ -103,6 +103,22 @@ class SIR:
         dy[3] = mu*y[1] # Dérivée de D
 
         return dy
+    
+    def deriv_SIRD_dev(self, t, y, params):
+        """
+        Derivees pour SIR
+        """
+        beta = params["beta"]
+        gamma= params["gamma"]
+        mu= params["mu"]
+        rho= params["rho"]
+        dy = np.zeros(4)
+        dy[0] = -beta*y[0]*y[1] + rho*y[2] # dérivée de S
+        dy[1] = beta*y[0]*y[1]-gamma*y[1] - mu*y[1] # dérivée de I
+        dy[2] = gamma*y[1] - rho*y[2] # dérivée de R
+        dy[3] = mu*y[1] # Dérivée de D
+
+        return dy
 
     def deriv_SIRDV(self, t, y, params):
         """
