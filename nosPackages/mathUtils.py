@@ -310,36 +310,37 @@ class COVID19:
     
         return [dSdt, dIdt, dRdt, dDdt, dVdt]
     
-    def deriv_SIRDV(self, t, y, params):
+    def deriv(self, t, y, params):
         """
         Derivees pour SIR
         """
         beta = params["beta"]
-        gamma= params["gamma"]
+        gamma = params["gamma"]
         mu = params["mu"]
-        omega = params["omega"]
-        rho= params["rho"]
+        omega_max = params["omega"]
+        rho = params["rho"]
+        t_start = params["t_start"]
+
+        # CONDITION DE DÉBUT DE VACCINATION
+        if t < t_start :
+            omega = 0
+        else:
+            omega = omega_max
+
         dy = np.zeros(5)
-        dy[0] = -beta*y[0]*y[1] - omega*y[0] # dérivée de S
+        dy[0] = -beta*y[0]*y[1] - omega*y[0] + rho*y[4] + rho*y[2] # dérivée de S
         dy[1] = beta*y[0]*y[1] -gamma*y[1] - mu*y[1] # dérivée de I
-        dy[2] = gamma*y[1] # dérivée de R
+        dy[2] = gamma*y[1] - rho*y[2] # dérivée de R
         dy[3] = mu*y[1] # Dérivée de D
-        dy[4] = omega*y[0] # Dérivée de V
+        dy[4] = omega*y[0] - rho*y[4] # Dérivée de V
 
         return dy
     
-    def deriv_SIRD_dev(self, t, y, params):
+    def euler(self,t, dt, y, deriv):
         """
-        Derivees pour SIR
+        Un pas de Euler : y(t+dt) = y(t) + dt*y'(t)
         """
-        beta = params["beta"]
-        gamma= params["gamma"]
-        mu= params["mu"]
-        rho= params["rho"]
-        dy = np.zeros(4)
-        dy[0] = -beta*y[0]*y[1] + rho*y[2] # dérivée de S
-        dy[1] = beta*y[0]*y[1]-gamma*y[1] - mu*y[1] # dérivée de I
-        dy[2] = gamma*y[1] - rho*y[2] # dérivée de R
-        dy[3] = mu*y[1] # Dérivée de D
-
-        return dy
+        params=self.params
+        dy = deriv(t, y, params)
+        y[:] = y + dt*dy
+        return y
