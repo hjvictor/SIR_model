@@ -250,3 +250,96 @@ class SIR_spatial:
         dy = deriv(t, y, params)
         y[:] = y + dt*dy
         return y
+    
+class COVID19:
+
+    def __init__(self,params:dict[str,float]):
+        self.params=params
+
+    def rk4(x, dx, y, deriv,params):
+        """
+        /*-----------------------------------------
+        sous programme de resolution d'equations
+        differentielles du premier ordre par
+        la methode de Runge-Kutta d'ordre 4
+        x = abscisse, une valeur scalaire, par exemple le temps
+        dx = pas, par exemple le pas de temps
+        y = valeurs des fonctions au temps t(i), c'est un tableau numpy de taille n
+        avec n le nombre d'équations différentielles du 1er ordre
+        
+        rk4 renvoie les nouvelles valeurs de y pour t(i+1)
+        
+        deriv = variable contenant le nom du
+        sous-programme qui calcule les derivees
+        deriv doit avoir trois arguments: deriv(x,y,params) et renvoyer 
+        un tableau numpy dy de taille n 
+        ----------------------------------------*/
+        """
+        #  /* d1, d2, d3, d4 = estimations des derivees
+        #    yp = estimations intermediaires des fonctions */  
+        ddx = dx/2.       #         /* demi-pas */
+        d1 = deriv(x,y,params)   #       /* 1ere estimation */          
+        yp = y + d1*ddx
+        #    for  i in range(n):
+        #        yp[i] = y[i] + d1[i]*ddx
+        d2 = deriv(x+ddx,yp,params)     #/* 2eme estimat. (1/2 pas) */
+        yp = y + d2*ddx    
+        d3 = deriv(x+ddx,yp,params)  #/* 3eme estimat. (1/2 pas) */
+        yp = y + d3*dx    
+        d4 = deriv(x+dx,yp,params)     #  /* 4eme estimat. (1 pas) */
+        #/* estimation de y pour le pas suivant en utilisant
+        #  une moyenne ponderee des derivees en remarquant
+        #  que : 1/6 + 1/3 + 1/3 + 1/6 = 1 */
+        return y + dx*( d1 + 2*d2 + 2*d3 + d4 )/6 
+
+    def model(y, t, beta, gamma, mu, nu_max, t_start):
+        S, I, R, D, V = y
+        N = S + I + R + D + V
+    
+        # Condition de déclenchement
+        if t < t_start:
+            nu = 0
+        else:
+            nu = nu_max
+    
+        dSdt = -beta * S * I / N - nu * S
+        dIdt = beta * S * I / N - (gamma + mu) * I
+        dRdt = gamma * I
+        dDdt = mu * I
+        dVdt = nu * S
+    
+        return [dSdt, dIdt, dRdt, dDdt, dVdt]
+    
+    def deriv_SIRDV(self, t, y, params):
+        """
+        Derivees pour SIR
+        """
+        beta = params["beta"]
+        gamma= params["gamma"]
+        mu = params["mu"]
+        omega = params["omega"]
+        rho= params["rho"]
+        dy = np.zeros(5)
+        dy[0] = -beta*y[0]*y[1] - omega*y[0] # dérivée de S
+        dy[1] = beta*y[0]*y[1] -gamma*y[1] - mu*y[1] # dérivée de I
+        dy[2] = gamma*y[1] # dérivée de R
+        dy[3] = mu*y[1] # Dérivée de D
+        dy[4] = omega*y[0] # Dérivée de V
+
+        return dy
+    
+    def deriv_SIRD_dev(self, t, y, params):
+        """
+        Derivees pour SIR
+        """
+        beta = params["beta"]
+        gamma= params["gamma"]
+        mu= params["mu"]
+        rho= params["rho"]
+        dy = np.zeros(4)
+        dy[0] = -beta*y[0]*y[1] + rho*y[2] # dérivée de S
+        dy[1] = beta*y[0]*y[1]-gamma*y[1] - mu*y[1] # dérivée de I
+        dy[2] = gamma*y[1] - rho*y[2] # dérivée de R
+        dy[3] = mu*y[1] # Dérivée de D
+
+        return dy
