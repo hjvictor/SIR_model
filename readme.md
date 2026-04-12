@@ -28,4 +28,5 @@ https://accromath.uqam.ca/2023/10/les-modeles-compartimentaux/
 Test épidémie
 https://mpechaud.fr/scripts/SIR/SIR.html
 
-
+Animations :
+https://www.geeksforgeeks.org/python/how-to-create-animations-in-python/
