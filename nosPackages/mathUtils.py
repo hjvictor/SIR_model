@@ -72,12 +72,12 @@ class SIR:
         dy = np.zeros(8)
 
         # Forces d'infection
-        lambda_J = beta[0, 0] * i + beta[0, 1] * i_v
+        lambda_S = beta[0, 0] * i + beta[0, 1] * i_v
         lambda_V = beta[1, 0] * i + beta[1, 1] * i_v
 
         # Groupe des non vulnérables
-        dy[0] = -s * lambda_J
-        dy[1] = s * lambda_J - (gamma + mu) * i
+        dy[0] = -s * lambda_S
+        dy[1] = s * lambda_S - (gamma + mu) * i
         dy[2] = gamma * i
         dy[3] = mu * i
 
@@ -145,51 +145,8 @@ class SIR:
         dy = deriv(t, y, params)
         y[:] = y + dt*dy
         return y
-
-class SIR_spatial:
-
-    def __init__(self,params:dict[str,float]):
-        self.params=params
-
-    def rk4(x, dx, y, deriv,params):
-        """
-        /*-----------------------------------------
-        sous programme de resolution d'equations
-        differentielles du premier ordre par
-        la methode de Runge-Kutta d'ordre 4
-        x = abscisse, une valeur scalaire, par exemple le temps
-        dx = pas, par exemple le pas de temps
-        y = valeurs des fonctions au temps t(i), c'est un tableau numpy de taille n
-        avec n le nombre d'équations différentielles du 1er ordre
-        
-        rk4 renvoie les nouvelles valeurs de y pour t(i+1)
-        
-        deriv = variable contenant le nom du
-        sous-programme qui calcule les derivees
-        deriv doit avoir trois arguments: deriv(x,y,params) et renvoyer 
-        un tableau numpy dy de taille n 
-        ----------------------------------------*/
-        """
-        #  /* d1, d2, d3, d4 = estimations des derivees
-        #    yp = estimations intermediaires des fonctions */  
-        ddx = dx/2.       #         /* demi-pas */
-        d1 = deriv(x,y,params)   #       /* 1ere estimation */          
-        yp = y + d1*ddx
-        #    for  i in range(n):
-        #        yp[i] = y[i] + d1[i]*ddx
-        d2 = deriv(x+ddx,yp,params)     #/* 2eme estimat. (1/2 pas) */
-        yp = y + d2*ddx    
-        d3 = deriv(x+ddx,yp,params)  #/* 3eme estimat. (1/2 pas) */
-        yp = y + d3*dx    
-        d4 = deriv(x+dx,yp,params)     #  /* 4eme estimat. (1 pas) */
-        #/* estimation de y pour le pas suivant en utilisant
-        #  une moyenne ponderee des derivees en remarquant
-        #  que : 1/6 + 1/3 + 1/3 + 1/6 = 1 */
-        return y + dx*( d1 + 2*d2 + 2*d3 + d4 )/6  
     
-    import numpy as np
-
-    def laplacien_neumann(I, h):
+    def laplacien_neumann(self, I, h):
         """
         Calcule le laplacien discret 2D de la matrice I
         avec condition au bord sans flux (Neumann)
@@ -207,38 +164,25 @@ class SIR_spatial:
 
         return L
     
-    def deriv_SIRD_2groupes_beta_matrix(self, t, y, params):
+    def deriv_SIRD_euler_explicite_spatiale(self, t, y, params):
         """
             Derivees pour SIRD
         """
-        s, i, r, d, s_v, i_v, r_v, d_v = y
+        s, i, r, d = y
 
-        beta = np.array(params["beta"])  
-        # beta = [[beta_JJ, beta_JV],
-        #         [beta_VJ, beta_VV]]
-
+        beta = params["beta"] 
         gamma = params["gamma"]
-        gamma_V = params["gamma_v"]
         mu = params["mu"]
-        mu_V = params["mu_v"]
-
-        dy = np.zeros(8)
-
-        # Forces d'infection
-        lambda_J = beta[0, 0] * i + beta[0, 1] * i_v
-        lambda_V = beta[1, 0] * i + beta[1, 1] * i_v
+        D = params["D"]
+        h = params["h"]
+        dy = np.zeros_like(y)
 
         # Groupe des non vulnérables
-        dy[0] = -s * lambda_J
-        dy[1] = s * lambda_J - (gamma + mu) * i
+        l=self.laplacien_neumann(i,h)
+        dy[0] = -s * beta
+        dy[1] = s * beta - (gamma + mu) * i +D*l
         dy[2] = gamma * i
         dy[3] = mu * i
-
-        # Groupe vulnérables
-        dy[4] = -s_v * lambda_V
-        dy[5] = s_v * lambda_V - (gamma_V + mu_V) * i_v
-        dy[6] = gamma_V * i_v
-        dy[7] = mu_V * i_v
 
         return dy
 
