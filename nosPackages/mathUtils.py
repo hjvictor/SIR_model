@@ -185,15 +185,6 @@ class SIR:
         dy[3] = mu * i
 
         return dy
-
-    def euler(self,t, dt, y, deriv):
-        """
-        Un pas de Euler : y(t+dt) = y(t) + dt*y'(t)
-        """
-        params=self.params
-        dy = deriv(t, y, params)
-        y[:] = y + dt*dy
-        return y
     
 class COVID19:
 
