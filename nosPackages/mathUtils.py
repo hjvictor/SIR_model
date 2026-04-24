@@ -226,24 +226,6 @@ class COVID19:
         #  une moyenne ponderee des derivees en remarquant
         #  que : 1/6 + 1/3 + 1/3 + 1/6 = 1 */
         return y + dx*( d1 + 2*d2 + 2*d3 + d4 )/6 
-
-    def model(y, t, beta, gamma, mu, nu_max, t_start):
-        S, I, R, D, V = y
-        N = S + I + R + D + V
-    
-        # Condition de déclenchement
-        if t < t_start:
-            nu = 0
-        else:
-            nu = nu_max
-    
-        dSdt = -beta * S * I / N - nu * S
-        dIdt = beta * S * I / N - (gamma + mu) * I
-        dRdt = gamma * I
-        dDdt = mu * I
-        dVdt = nu * S
-    
-        return [dSdt, dIdt, dRdt, dDdt, dVdt]
     
     def deriv(self, t, y, params):
         """
@@ -261,6 +243,34 @@ class COVID19:
             omega = 0
         else:
             omega = omega_max
+
+        dy = np.zeros(5)
+        dy[0] = -beta*y[0]*y[1] - omega*y[0] + rho*y[4] + rho*y[2] # dérivée de S
+        dy[1] = beta*y[0]*y[1] -gamma*y[1] - mu*y[1] # dérivée de I
+        dy[2] = gamma*y[1] - rho*y[2] # dérivée de R
+        dy[3] = mu*y[1] # Dérivée de D
+        dy[4] = omega*y[0] - rho*y[4] # Dérivée de V
+
+        return dy
+    
+    def deriv_sigmo(self, t, y, params):
+        """
+        Derivees pour SIR type sigmoïde logistique
+        """
+        beta = params["beta"]
+        gamma = params["gamma"]
+        mu = params["mu"]
+        omega_max = params["omega"]
+        rho = params["rho"]
+        t_start = params["t_start"]
+        k = params["k"]
+
+        # CONDITION DE DÉBUT DE VACCINATION
+        if t < t_start:
+            omega = 0
+        else:
+            t_milieu = t_start + 155
+            omega = omega_max / (1 + np.exp(-k * (t - t_milieu)))
 
         dy = np.zeros(5)
         dy[0] = -beta*y[0]*y[1] - omega*y[0] + rho*y[4] + rho*y[2] # dérivée de S
