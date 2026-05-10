@@ -163,26 +163,78 @@ class SIR:
         ) / h**2
 
         return L
-    
-    def deriv_SIRD_euler_explicite_spatiale(self, t, y, params):
+    def beta_locale(self, pop, params, param):
         """
-            Derivees pour SIRD
-        """
-        s, i, r, d = y
+        Calcule beta_ij localement en fonction de la proportion
+        de sains restants par rapport à la population initiale locale.
 
-        beta = params["beta"] 
+        beta_ij = beta0 si S_ij = N0_ij
+        beta_ij = 0 si S_ij / N0_ij <= seuil_invincibilite
+        """
+
+        beta0 = params[param]
+        eps = params.get("eps", 1e-12)
+
+        # Seuil, par exemple 0.5 pour 50%
+        p_star = params.get("seuil_invincibilite", 0.01)
+
+        # Population initiale locale fixe
+        N0_local = params["N0_local"]
+
+        # Proportion de sains par rapport à la population initiale locale
+        p_sain = pop / (N0_local + eps)
+
+        # Beta local
+        beta_local = beta0 * np.clip(
+            (p_sain - p_star) / (1 - p_star),
+            0,
+            1
+        )
+
+        return beta_local
+
+    def deriv_SIZD_euler_explicite_spatiale(self, t, y, params):
+        """
+        Dérivées du modèle spatial SIZD.
+
+        Ordre de y :
+            y[0] = S : humains sains
+            y[1] = Z : zombies
+            y[2] = I : infectés en incubation
+            y[3] = D : morts humains
+            y[4] = DZ : zombies morts
+        """
+
+        S, Z, I, Dead, DeadZ = y
+
         gamma = params["gamma"]
         mu = params["mu"]
-        D = params["D"]
+        alpha = params["alpha"]
+        Dz = params["D"]
         h = params["h"]
+        eps = params.get("eps", 1e-12)
+
         dy = np.zeros_like(y)
 
-        # Groupe des non vulnérables
-        l=self.laplacien_neumann(i,h)
-        dy[0] = -s * beta
-        dy[1] = s * beta - (gamma + mu) * i +D*l
-        dy[2] = gamma * i
-        dy[3] = mu * i
+        # Population active locale pour les contacts
+        n_actif = S + Z + I + eps
+
+        # Beta local basé sur S / N0_local
+        beta_local = self.beta_locale(S,params,"beta")
+        mu_local = self.beta_locale(S,params,"mu")
+
+        # Terme de contact local
+        C = S * Z / n_actif
+
+        # Diffusion uniquement des zombies
+        lap_Z = self.laplacien_neumann(Z, h)
+
+        # Équations du modèle
+        dy[0] = -(mu_local + beta_local) * C
+        dy[1] = gamma * I - alpha * C + Dz * lap_Z
+        dy[2] = -gamma * I + beta_local * C
+        dy[3] = mu_local * C
+        dy[4] = alpha * C
 
         return dy
     
