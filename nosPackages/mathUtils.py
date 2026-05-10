@@ -281,6 +281,39 @@ class COVID19:
 
         return dy
     
+    def deriv_conf(self, t, y, params):
+        # --- GESTION DU BETA (CONFINEMENT) ---
+        if params["t_conf"] <= t <= params["t_fin_conf"]:
+            beta_actuel = params["beta_conf"]
+        else:
+            beta_actuel = params["beta"]
+
+        # --- GESTION DE OMEGA (VACCINATION) ---
+        omega_max = params["omega"]
+        t_start = params["t_start"]
+        k = params["k"]
+    
+        if t < t_start:
+            omega = 0
+        else:
+            t_milieu = t_start + 155
+            omega = omega_max / (1 + np.exp(-k * (t - t_milieu)))
+
+        # --- ÉQUATIONS DIFFÉRENTIELLES ---
+        rho = params["rho"]
+        gamma = params["gamma"]
+        mu = params["mu"]
+
+        dy = np.zeros(5)
+        # On utilise beta_actuel ici
+        dy[0] = -beta_actuel*y[0]*y[1] - omega*y[0] + rho*y[4] + rho*y[2]
+        dy[1] = beta_actuel*y[0]*y[1] - gamma*y[1] - mu*y[1]
+        dy[2] = gamma*y[1] - rho*y[2]
+        dy[3] = mu*y[1]
+        dy[4] = omega*y[0] - rho*y[4]
+
+        return dy
+    
     def euler(self,t, dt, y, deriv):
         """
         Un pas de Euler : y(t+dt) = y(t) + dt*y'(t)
